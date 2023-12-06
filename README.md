@@ -70,6 +70,10 @@ idempotency `index.mdx` files for examples on how to take advantage of that.
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
-## License
+## License Summary
 
-This library is licensed under the LICENSE NAME HERE License.
+The documentation is made available under the Creative Commons Attribution-ShareAlike 4.0
+International License. See the LICENSE file.
+
+The sample code within this documentation is made available under the MIT-0 license. See the
+LICENSE-SAMPLECODE file.

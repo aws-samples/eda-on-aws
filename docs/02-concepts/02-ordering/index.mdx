@@ -4,6 +4,9 @@ title: Message ordering
 description: How to think about and manage message ordering
 ---
 
+{/* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. */}
+{/* SPDX-License-Identifier: CC-BY-SA-4.0 */}
+
 import { FigureCaption } from "@site/src/components/FigureCaption"
 import { PersonQuote } from "@site/src/components/PersonQuote"
 import { BrianProfileCard } from "@site/src/components/ProfileCard"
@@ -414,18 +417,18 @@ messages that arrive at the broker in the wrong logical order.
 ## Resources
 
 [Enterprise Integration Patterns](https://www.enterpriseintegrationpatterns.com/) contains many
-useful explanations of various patterns. The [Message
-Sequencer](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageSequence.html)
+useful explanations of various patterns. The
+[Message Sequencer](https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageSequence.html)
 discusses how to send ordered messages to work around message payload limits. However, the idea of
-adding a sequence number is applicable with respect to order.  This pattern with the [resequencer
-pattern](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Resequencer.html) provide
-more details on how to implement logical ordering in your application.
+adding a sequence number is applicable with respect to order. This pattern with the
+[resequencer pattern](https://www.enterpriseintegrationpatterns.com/patterns/messaging/Resequencer.html)
+provide more details on how to implement logical ordering in your application.
 
 You can read about guarantees on ordering for various brokers if that is an acceptable solution for
 your use case.
 
 - [SQS FIFO queues](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-fifo-queues.html)
 - [SNS Message ordering and deduplication](https://docs.aws.amazon.com/sns/latest/dg/sns-fifo-topics.html)
-- [Destination options with Amazon
-  MQ](https://docs.aws.amazon.com/amazon-mq/latest/migration-guide/key-concepts.html#destination-options)
-- Kafka [Durability, Availability, and Ordering Guarantees](https://developer.confluent.io/courses/architecture/guarantees/)
+- [Destination options with Amazon MQ](https://docs.aws.amazon.com/amazon-mq/latest/migration-guide/key-concepts.html#destination-options)
+- Kafka
+  [Durability, Availability, and Ordering Guarantees](https://developer.confluent.io/courses/architecture/guarantees/)
