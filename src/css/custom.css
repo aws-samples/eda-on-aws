@@ -1,0 +1,201 @@
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+/* You can override the default Infima variables here. */
+:root {
+  /* Custom Amazon variables */
+  --amzn-color-squid: #232F3E;
+  --amzn-color-anchor:#003181;
+  --amzn-color-sky: #2074D5;
+  --amzn-color-rind: #FBD8BF;
+  --amzn-color-smile: #FF9900;
+
+  --ifm-color-primary: #232F3E;
+  --ifm-color-primary-dark: #202A38;
+  --ifm-color-primary-darker: #1E2835;
+  --ifm-color-primary-darkest: #18212B;
+  --ifm-color-primary-light: #273444;
+  --ifm-color-primary-lighter: #283647;
+  --ifm-color-primary-lightest: #2E3D51;
+
+  /* links */
+  --ifm-link-color: var(--amzn-color-anchor);
+  --ifm-link-hover-color: var(--amzn-color-sky);
+  --ifm-link-decoration: underline;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #ff9900;
+  --ifm-color-primary-dark: #e68a00;
+  --ifm-color-primary-darker: #d98200;
+  --ifm-color-primary-darkest: #b36b00;
+  --ifm-color-primary-light: #ffa31a;
+  --ifm-color-primary-lighter: #ffa826;
+  --ifm-color-primary-lightest: #ffb84d;
+
+  /* backgrounds */
+  --ifm-background-color: var(--amzn-color-squid);
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+
+  /* links */
+  --ifm-link-color: var(--amzn-color-smile);
+  --ifm-link-hover-color: var(--amzn-color-rind);
+}
+
+html[data-theme='dark'] {
+  --ifm-background-color: #2E3D51;
+  --ifm-background-surface-color: var(--amzn-color-squid);
+}
+
+footer[class~='footer'] {
+  --ifm-footer-background-color: var(--amzn-color-squid);
+}
+
+figcaption.figure-caption {
+  text-align: center;
+  font-style: italic;
+  font-weight: bold;
+  padding-bottom: 15px;
+}
+
+.person-quote {
+  font-size: xx-large;
+}
+.quote-author {
+  margin-left: 1rem;
+  font-size: large;
+}
+.quote-ref {
+  margin-left: 1rem;
+  font-size: smaller;
+}
+
+/* html[data-theme='dark'] footer[class~='footer'] { */
+/*   --ifm-footer-background-color:  var(--amzn-color-squid); */
+/*   --ifm-background-surface-color: var(--amzn-color-squid); */
+/* } */
+
+/* Button styles taken from data on EKS */
+.button-3d {
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
+  transition: transform 0.3s ease-in-out;
+}
+
+.button-sparkles {
+  background-image: linear-gradient(to right, #ff3d2b 0%, #ffd941 51%, #ff2bc6 100%);
+  background-size: 200% auto;
+  background-position: right bottom;
+  animation: sparkling 1s ease-out infinite;
+  color: #070707;
+}
+
+@keyframes sparkling {
+  0% {
+    background-position: right bottom;
+  }
+
+  50% {
+    background-position: left bottom;
+  }
+
+  100% {
+    background-position: right bottom;
+  }
+}
+
+
+/* .hero__subtitle { */
+/*   animation: float 2s ease-in-out infinite; */
+/* } */
+
+/* @keyframes float { */
+/*   0% { */
+/*     transform: translatey(0); */
+/*   } */
+/*  */
+/*   50% { */
+/*     transform: translatey(-10px); */
+/*   } */
+/*  */
+/*   100% { */
+/*     transform: translatey(0); */
+/*   } */
+/* } */
+/* End button styles from data on EKS */
+
+
+.profile-card {
+  float: right;
+  margin: 10px;
+  min-width: 250px;
+  max-width: 310px;
+  width: 100%;
+  text-align: center;
+  /* https: //getcssscan.com/css-box-shadow-examples */
+  box-shadow: rgba(255, 255, 255, 0.1) 0px 1px 1px 0px inset, rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px;
+}
+
+.profile-card * {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.profile-card .profile-image {
+  padding: 10% 5% 0;
+}
+
+.profile-card .profile-image img {
+  max-width: 100%;
+  vertical-align: top;
+  position: relative;
+  border-radius: 50%;
+  max-width: 40%;
+}
+
+.profile-card figcaption {
+  padding: 5% 10% 10%;
+}
+
+.profile-card figcaption .aws-logo {
+  padding: 5% 0 0 0;
+}
+
+.profile-card h3 {
+  font-family: 'Oswald';
+  text-transform: uppercase;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 24px;
+  margin: 3px 0;
+}
+
+.profile-card h5 {
+  font-weight: 400;
+  margin: 0;
+  text-transform: uppercase;
+  color: #888;
+  letter-spacing: 1px;
+}
+
+.profile-card .icons {
+  margin-top: 5%;
+}
+
+.profile-card .icons svg {
+  color: #999;
+  display: inline-block;
+  margin-right: 20px;
+  font-size: 1.5em;
+}
+
+.profile-card .icons svg:hover {
+  color: #333;
+}
+
+.profile-card .icons  a {
+  text-decoration: none;
+}

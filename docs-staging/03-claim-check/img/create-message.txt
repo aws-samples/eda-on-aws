@@ -1,0 +1,17 @@
+@startuml
+
+group Create the message
+    "Client" -> "API Gateway": Send the blog's entry title
+    "API Gateway" -> "Lambda": Pass the blog's entry title
+    "Lambda" -> "Lambda": Generate reference/key
+    "Lambda" -> "DynamoDB": Store the reference/key and blog's entry title
+    "DynamoDB" -> "Lambda": Return confirmation
+    "Lambda" -> "API Gateway": Pass the reference/key
+    "API Gateway" -> "Client": Return the refernce/key
+end
+
+group Complete/add information to message
+	"Client"->"API Gateway"
+end
+
+@enduml

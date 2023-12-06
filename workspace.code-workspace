@@ -1,0 +1,13 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "prettier.documentSelectors": ["docs/**/*.md"],
+    "prettier.printWidth": 100,
+    "prettier.proseWrap": "always",
+    "prettier.semi": false
+  }
+}

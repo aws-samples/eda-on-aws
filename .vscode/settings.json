@@ -1,0 +1,12 @@
+{
+  "prettier.prettierPath": "",
+  "prettier.proseWrap": "always",
+  "prettier.printWidth": 100,
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "python.formatting.provider": "none",
+  "cSpell.enableFiletypes": ["markdown", "md", "mdx", "!json"],
+  "cSpell.words": ["criticalevent", "idempotency", "Powertools", "resequencer", "Resequencing"],
+  "cSpell.enabled": true
+}

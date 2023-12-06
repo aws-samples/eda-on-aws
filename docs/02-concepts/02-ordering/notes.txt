@@ -1,0 +1,56 @@
+notes from Michael and Max
+
+- Dealing with concurrency and out-of-order events in event-driven architectures
+  - Why FIFO is so popular (Kafka, SQS)
+  - Some of the challenges with FIFO (scaling limits, not all sys support it)
+    - Even with Kafka append-only != FIFO
+    - Dealing w/ concurrency
+  - Problem not new: same with idempotency and "exactly-once"
+    - Distributed systems are messy, embrace it
+    - Prepare for the unexpected (no ordering, duplicates, late arrival, etc.) to build resilient
+      systems
+      - https://speakerdeck.com/embano1/tenets-of-resilient-systems
+  - Alternatives to FIFO if end-to-end FIFO is not possible/needed/desired
+  - Example: Kafka w/ CDC from database and EventBridge to Salesforce/DynamoDB/DW with Kafka Connect
+    - Show event structure how ID/Source/Key/Topic/Partition/Offset fields can be used for
+      optimistic concurrency (OCC), locking, late arrival, out-of-order
+    - Situation: "CreateUserEvent→DeleteUserEvent" but arrival order (due to EB not guaranteeing
+      ordering) is "DeleteUserEvent→CreateUserEvent"
+      - Data inconsistencies
+      - Hard to troubleshoot (also can't know all corner cases upfront)
+    - Prepare for the unexpected:
+      - late, out-of-order, duplicates
+    - Solution:
+      - Store "DeleteUserEvent" in DDB (since it's first to enter DDB)
+        - Note: the event likely has tombstone indicator, i.e., "value": NULL
+        - Use DDB TTL to clean-up such markers async (e.g., after 48h)
+          - Can't find story on web, but there was a blog post about a server being shut down for
+            2y, accidentally turned on and delivering Valentine's Day emails to recipients - nobody
+            ever prepared for such late arriving data
+            - Memory, guesses and apologies https://arxiv.org/pdf/0909.1788.pdf
+      - When "CreateUserEvent" arrives in DDB
+        - Compare combination of (some) ID/Source/Key/Topic/Partition/Offset fields and only accept
+          write if it's monotonically (no global clock) later than existing entry
+          - Here: write fails (OCC) bc late arrival (out-of-order)
+          - DDB remains consistent
+      - Come up with complex corner cases:
+        - What if topic is re-keyed/new topic?
+        - How to pick right TTL (tradeoff time/space and correctness/efficiency)
+        - More?
+    - Summary:
+      - Everything is a distributed system
+      - Distributed systems are hard
+        - https://speakerdeck.com/embano1/design-and-patterns-of-distributed-systems?slide=7
+      - There's no such thing as a guarantee
+      - FIFO support makes dev's life easier, BUT not all systems support it and it's a false
+        promise to rely on
+        - Memory, guesses and apologies https://arxiv.org/pdf/0909.1788.pdf
+        - Prepare for the unexpected ("Black Swan") and the overall resiliency of your system will
+          increase
+      - Idempotency is well-established pattern in distributed systems
+        - Use it for out-of-order/late arrival and concurrency
+        - Leverage monotonicity as a pattern/property to build resilient systems
+          - https://cacm.acm.org/magazines/2020/9/246941-keeping-calm/fulltext
+      - Examples from other systems:
+        - Kubernetes
+          https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
