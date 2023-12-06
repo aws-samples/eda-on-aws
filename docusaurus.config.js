@@ -106,7 +106,7 @@ const config = {
           //   label: "Patterns",
           // },
           {
-            href: "https://github.com/awslabs/data-on-eks",
+            href: "https://github.com/aws-samples/eda-on-aws",
             label: "GitHub",
             position: "right",
           },
@@ -116,10 +116,10 @@ const config = {
         style: "dark",
         links: [
           {
-            title: "Intoduction",
+            title: "Introduction",
             items: [
               {
-                label: "Intoduction",
+                label: "Introduction",
                 to: "/introduction",
               },
             ],
@@ -131,18 +131,18 @@ const config = {
                 label: "Stack Overflow",
                 href: "https://stackoverflow.com/search?q=%5Bamazon-web-services%5D+event-driven",
               },
-              {
-                label: "Intro to EDA",
-                href: "https://serverlessland.com/event-driven-architecture",
-              },
             ],
           },
           {
             title: "More",
             items: [
               {
+                label: "Intro to EDA",
+                href: "https://serverlessland.com/event-driven-architecture",
+              },
+              {
                 label: "GitHub",
-                href: "https://github.com/facebook/docusaurus",
+                href: "https://github.com/aws-samples/eda-on-aws",
               },
             ],
           },
