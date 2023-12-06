@@ -1,9 +1,6 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-// const lightCodeTheme = require("prism-react-renderer/themes/github")
-// const darkCodeTheme = require("prism-react-renderer/themes/dracula")
-
 const themes = require("prism-react-renderer").themes
 const lightCodeTheme = themes.github
 const darkCodeTheme = themes.dracula
@@ -25,8 +22,8 @@ const config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: "brianz", // Usually your GitHub org/user name.
-  projectName: "eda-land-test", // Usually your repo name.
+  organizationName: "aws-samples",
+  projectName: "eda-on-aws",
 
   onBrokenLinks: "throw",
   onBrokenMarkdownLinks: "warn",

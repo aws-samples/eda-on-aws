@@ -1,3 +1,4 @@
+GITLAB_URL=https://integration-services.pages.aws.dev
 PRODUCTION_URL=https://d26uv1sd3qmqb0.cloudfront.net
 BASE_URL="/"
 
