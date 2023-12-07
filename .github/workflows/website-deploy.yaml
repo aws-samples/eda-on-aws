@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PRODUCTION_URL: https://aws-samples.github.io
-      BASE_URL: /
+      BASE_URL: /eda-on-aws/
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
