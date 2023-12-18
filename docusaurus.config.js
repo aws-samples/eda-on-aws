@@ -49,10 +49,8 @@ const config = {
         docs: {
           routeBasePath: "/", // Serve the docs at the site's root
           sidebarPath: require.resolve("./sidebars.js"),
-          // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
+          editUrl: "https://github.com/aws-samples/eda-on-aws/tree/main",
         },
         blog: false,
         theme: {
@@ -73,7 +71,7 @@ const config = {
           src: "img/eda-logo-colors-light.svg",
           srcDark: "img/eda-logo-colors-dark.svg",
         },
-        // These are the items in the top navbar
+        // These are the items in the top and left navbar
         items: [
           {
             type: "doc",
@@ -92,6 +90,12 @@ const config = {
             position: "left",
             docId: "patterns/index",
             label: "Patterns",
+          },
+          {
+            type: "doc",
+            position: "left",
+            docId: "eventstorming/index",
+            label: "EventStorming",
           },
           // {
           //   type: "doc",

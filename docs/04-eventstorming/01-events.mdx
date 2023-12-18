@@ -1,0 +1,36 @@
+---
+id: step-1
+title: Step 1 - Crowdsource events
+---
+
+{/* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. */}
+{/* SPDX-License-Identifier: CC-BY-SA-4.0 */}
+
+import { FigureCaption } from "@site/src/components/FigureCaption"
+import { PersonQuote } from "@site/src/components/PersonQuote"
+
+The first step in any EventStorming session is crowdsourcing events. Individuals brainstorm events
+and write them down on orange sticky notes. To get started, think about the first and last events in
+your problem domain.
+
+As an example, when modeling "onboarding users" the first domain event could be `name entered` and
+the last event may be `converted to active`. There will be many more events between theses starting
+and ending events. Everyone's job is to brainstorm what those events without worrying about naming
+them right, duplicates or ordering.
+
+![Orange sticky notes represent domain events](./diagrams/sticky-notes-events.svg)
+
+This begs the question: what is an event? In event-driven architecture we define an event as:
+
+<PersonQuote>
+  Event: something that a domain expert cares about. Immutable facts that have occurred in the past.
+</PersonQuote>
+
+Events are written in the past tense. They are facts that have already occurred and cannot be
+changes. What constitutes a domain event is defined by you and your domain experts. What may be
+irrelevant in one problem domain may be important in another.
+
+As an example, is a user scrolling the to bottom of a webpage a domain event? If you are operating
+in the domain of e-commerce, it's unlikely you may care about this? HOwever, if you're building a
+web analytic platform, a user scrolling to the bottom of the page may be very important. It's up to
+you and the other domain experts to decide what is a domain event.
