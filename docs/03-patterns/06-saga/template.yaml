@@ -1,0 +1,435 @@
+Resources:
+  UpdateInventory:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: UpdateInventory
+      CodeUri: src/UpdateInventory
+      Handler: index.handler
+      Runtime: nodejs20.x
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Environment:
+        Variables:
+          INVENTORYTABLE_TABLE_NAME: !Ref InventoryTable
+          INVENTORYTABLE_TABLE_ARN: !GetAtt InventoryTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref InventoryTable
+  UpdateInventoryLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${UpdateInventory}
+  PlaceOrder:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: PlaceOrder
+      CodeUri: src/PlaceOrder
+      Handler: index.handler
+      Runtime: nodejs20.x
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Events:
+        PlaceOrderAPIPOST:
+          Type: Api
+          Properties:
+            Path: /
+            Method: POST
+            RestApiId: !Ref PlaceOrderAPI
+      Environment:
+        Variables:
+          ORDERSTABLE_TABLE_NAME: !Ref OrdersTable
+          ORDERSTABLE_TABLE_ARN: !GetAtt OrdersTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrdersTable
+  PlaceOrderLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${PlaceOrder}
+  OrderSucceededRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - custom_application.order_service
+        detail-type:
+          - Order Status Change
+        detail:
+          order-status:
+            - SUCCEEDED
+      EventBusName: custom_bus
+      Targets:
+        - Id: !Ref UpdateInventory
+          Arn: !GetAtt UpdateInventory.Arn
+  OrderSucceededRuleToUpdateInventoryConnector:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt UpdateInventory.Arn
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt OrderSucceededRule.Arn
+  InventoryUpdateSucceededRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - custom_application.inventory_service
+        detail-type:
+          - Inventory Update Status Change
+        detail:
+          inventory-update-status:
+            - SUCCEEDED
+      EventBusName: custom_bus
+      Targets:
+        - Id: !Ref ExecutePayment
+          Arn: !GetAtt ExecutePayment.Arn
+  ExecutePayment:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: ExecutePayment
+      CodeUri: src/ExecutePayment
+      Handler: index.handler
+      Runtime: nodejs20.x
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+  ExecutePaymentLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${ExecutePayment}
+  InventoryUpdateSucceededRuleToExecutePaymentConnector:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt ExecutePayment.Arn
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt InventoryUpdateSucceededRule.Arn
+  PaymentSucceeded:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - custom_application.payments_service
+        detail-type:
+          - Payment Status Change
+        detail:
+          payment-status:
+            - SUCCEEDED
+      EventBusName: custom_bus
+      Targets:
+        - Id: !Ref NotifyOrderSuccess
+          Arn: !GetAtt NotifyOrderSuccess.Arn
+  NotifyOrderSuccess:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: NotifyOrderSuccess
+      CodeUri: src/NotifyOrderSuccess
+      Handler: index.handler
+      Runtime: nodejs20.x
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+  NotifyOrderSuccessLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${NotifyOrderSuccess}
+  PaymentSucceededToNotifyOrderSuccessConnector:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt NotifyOrderSuccess.Arn
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt PaymentSucceeded.Arn
+  CustomEventBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: custom_bus
+  PlaceOrderAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub
+        - ${ResourceName} From Stack ${AWS::StackName}
+        - ResourceName: PlaceOrderAPI
+      StageName: Prod
+      DefinitionBody:
+        openapi: '3.0'
+        info: {}
+        paths:
+          /:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PlaceOrder.Arn}/invocations
+              responses: {}
+      EndpointConfiguration: REGIONAL
+      TracingEnabled: true
+      Cors:
+        MaxAge: 5
+  OrdersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+  InventoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+  OrderFailedRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - custom_application.order_service
+        detail-type:
+          - Order Status Change
+        detail:
+          order-status:
+            - FAILED
+      EventBusName: custom_bus
+      Targets:
+        - Id: !Ref RemoveOrder
+          Arn: !GetAtt RemoveOrder.Arn
+  InventoryUpdateFailedRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - custom_application.inventory_service
+        detail-type:
+          - Inventory Update Status Change
+        detail:
+          inventory-update-status:
+            - SUCCEEDED
+      EventBusName: custom_bus
+      Targets:
+        - Id: !Ref RevertInventoryUpdate
+          Arn: !GetAtt RevertInventoryUpdate.Arn
+  PaymentFailedRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - custom_application.payments_service
+        detail-type:
+          - Payment Status Change
+        detail:
+          payment-status:
+            - FAILED
+      EventBusName: custom_bus
+      Targets:
+        - Id: !Ref RevertPayment
+          Arn: !GetAtt RevertPayment.Arn
+  RemoveOrder:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: RemoveOrder
+      CodeUri: src/RemoveOrder
+      Handler: index.handler
+      Runtime: nodejs20.x
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Environment:
+        Variables:
+          ORDERSTABLE_TABLE_NAME: !Ref OrdersTable
+          ORDERSTABLE_TABLE_ARN: !GetAtt OrdersTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref OrdersTable
+  RemoveOrderLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${RemoveOrder}
+  OrderFailedRuleToRemoveOrderConnector:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt RemoveOrder.Arn
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt OrderFailedRule.Arn
+  RevertInventoryUpdate:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: RevertInventoryUpdate
+      CodeUri: src/RevertInventoryUpdate
+      Handler: index.handler
+      Runtime: nodejs20.x
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Environment:
+        Variables:
+          INVENTORYTABLE_TABLE_NAME: !Ref InventoryTable
+          INVENTORYTABLE_TABLE_ARN: !GetAtt InventoryTable.Arn
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref InventoryTable
+  RevertInventoryUpdateLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${RevertInventoryUpdate}
+  InventoryUpdateFailedRuleToRevertInventoryUpdateConnector:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt RevertInventoryUpdate.Arn
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt InventoryUpdateFailedRule.Arn
+  RevertPayment:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: RevertPayment
+      CodeUri: src/RevertPayment
+      Handler: index.handler
+      Runtime: nodejs20.x
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+  RevertPaymentLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${RevertPayment}
+  PaymentFailedRuleToRevertPaymentConnector:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt RevertPayment.Arn
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt PaymentFailedRule.Arn
+  PaymentRevertedRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - custom_application.payments_service
+        detail-type:
+          - Payment Status Change
+        detail:
+          payment-status:
+            - REVERTED
+      EventBusName: custom_bus
+      Targets:
+        - Id: !Ref RevertInventoryUpdate
+          Arn: !GetAtt RevertInventoryUpdate.Arn
+  PaymentRevertedRuleToRevertInventoryUpdateConnector:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt RevertInventoryUpdate.Arn
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt PaymentRevertedRule.Arn
+  InventoryUpdateReverted:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - custom_application.inventory_service
+        detail-type:
+          - Inventory Update Status Change
+        detail:
+          inventory-update-status:
+            - REVERTED
+      EventBusName: custom_bus
+      Targets:
+        - Id: !Ref RemoveOrder
+          Arn: !GetAtt RemoveOrder.Arn
+  InventoryUpdateRevertedToRemoveOrderConnector:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt RemoveOrder.Arn
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt InventoryUpdateReverted.Arn
+  CustomEventBusPolicy:
+    Type: AWS::Events::EventBusPolicy
+    Properties:
+      StatementId: AllowPutEventsFromServices
+      Action:
+        - events:PutEvents
+      Principal:
+        - !Ref PlaceOrder
+        - !Ref UpdateInventory
+        - !Ref ExecutePayment
+        - !Ref RemoveOrder
+        - !Ref RevertInventoryUpdate
+        - !Ref RevertPayment
+      EventBusName: custom_bus
+  OrderRemoved:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source:
+          - custom_application.order_service
+        detail-type:
+          - Order Status Change
+        detail:
+          order-status:
+            - REMOVED
+      EventBusName: custom_bus
+      Targets:
+        - Id: !Ref NotifyOrderFailure
+          Arn: !GetAtt NotifyOrderFailure.Arn
+  NotifyOrderFailure:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: NotifyOrderFailure
+      CodeUri: src/NotifyOrderFailure
+      Handler: index.handler
+      Runtime: nodejs20.x
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+  NotifyOrderFailureLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${NotifyOrderFailure}
+  OrderRemovedToNotifyOrderFailureConnector:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt NotifyOrderFailure.Arn
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt OrderRemoved.Arn
+Transform: AWS::Serverless-2016-10-31

@@ -1,6 +1,7 @@
 import React from "react"
 
 import BrianHeadshotUrl from "@site/static/img/bz-hiking.jpeg"
+import JomafeHeadshotUrl from "@site/static/img/jomafe_photo.jpg"
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLinkedin, faTwitter, faGithub } from "@fortawesome/free-brands-svg-icons"
@@ -51,5 +52,16 @@ export const BrianProfileCard = () => (
     gitHubUsername="brianz"
     linkedInUsername="brianzambrano"
     twitterUsername="brianzambrano"
+  ></ProfileCard>
+)
+
+export const JomafeProfileCard = () => (
+  <ProfileCard
+    name="Jordi Macià"
+    title="Sr. Solutions Architect, CPG"
+    headshotImage={JomafeHeadshotUrl}
+    gitHubUsername="jomafe"
+    linkedInUsername="jordimacia"
+    twitterUsername=""
   ></ProfileCard>
 )
