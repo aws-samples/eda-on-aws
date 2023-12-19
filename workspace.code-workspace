@@ -8,6 +8,7 @@
     "prettier.documentSelectors": ["docs/**/*.md"],
     "prettier.printWidth": 100,
     "prettier.proseWrap": "always",
-    "prettier.semi": false
+    "prettier.semi": false,
+    "cSpell.enabled": true
   }
 }

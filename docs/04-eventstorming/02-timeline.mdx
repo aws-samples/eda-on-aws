@@ -7,11 +7,12 @@ title: Step 2 - Sequence events
 {/* SPDX-License-Identifier: CC-BY-SA-4.0 */}
 
 Once people have created enough events it's time to sequence them. Sequencing is nothing more than
-talking through the order that the events occur relative to one another.
+talking through the order that the events occur relative to one another. While this is simple in
+concept this should spur many conversations and debate.
 
 During this stage there will be duplicate events that are written similarly, or completely
-different. The group need to discuss the language used and make decisions on what makes sense, what
-are duplicates, and where they occur.
+different. The group needs to discuss the language used and come to agreed-upon words or phrases,
+what events are duplicates, and where events live along the timeline.
 
 In the example below there are four different events that relate to a credit card payment being made
 and accepted. They all have the same theme, but use different language. It also may make sense to
@@ -21,5 +22,18 @@ multiple events using slightly different language.
 
 ![Orange sticky notes represent domain events](./diagrams/sticky-notes-sequence.svg)
 
-There are no absolute rules with EventStorming and sequencing. The most important part of the
-process is domain experts exploring and understanding together.
+There are no absolute rules with EventStorming and sequencing! The most important part of the
+process is that domain experts explore, learn, and understand together.
+
+A question that will undoubtedly come up is how to handle parallel flows or branches in logic.
+Sometimes people may call this the "sad path" meaning something that happens during an error. A
+simple way of dealing with this is to put the parallel events above or below the "happy path" flow.
+
+In this example imagine a duplicate email is detected during the new user flow. A duplicate email
+could trigger a notification being sent to the user along with a security scan.
+
+![Handling parallel or sad paths](./diagrams/sticky-notes-sad-path.svg)
+
+During a Big Picture sessions it's often sufficient to capture just the big events and not worry too
+much about all of the different permutations and paths. Many details will start to show up as you
+get into more depth in Process and Detail level EventStorming sessions.
