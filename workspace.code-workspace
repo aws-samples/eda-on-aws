@@ -9,6 +9,7 @@
     "prettier.printWidth": 100,
     "prettier.proseWrap": "always",
     "prettier.semi": false,
-    "cSpell.enabled": true
+    "cSpell.enabled": true,
+    "cSpell.words": ["eventstorming"]
   }
 }
