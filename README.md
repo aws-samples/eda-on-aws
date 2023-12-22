@@ -10,11 +10,13 @@ If you have suggestion for content or general feedback, please open a [new GitHu
 
 ## EDA Topics
 
-The contents are split into two major categories:
+The contents are split into three major categories:
 
 - Concepts: Fundamental ideas/concepts that are applicable to EDA and distributed systems in
   general.
 - Patterns: Popular EDA patterns that people hear/read about
+- EventStorming: Explaining fundamentals of the EventStorming process, and how it's useful when
+  designing EDAs.
 
 The primary goal of this content is to offer clear explanations and guidance on fundamental and
 sometimes confusing event-driven architecture topics and patterns.
@@ -22,22 +24,28 @@ sometimes confusing event-driven architecture topics and patterns.
 ### Concepts
 
 - Idempotency/handling duplicates [COMPLETE]
-  - Owner: Brian Zambrano
+  - Author: Brian Zambrano
 - Message ordering [COMPLETE]
-  - Owner: Brian Zambrano
+  - Author: Brian Zambrano
 - Event/schema evolution/versioning [NOT STARTED]
 
 ### EDA Patterns
 
-- Claim check [STARTED]
-  - Owner: Rodrigo Cabrera/Rogelio Ramirez Rubio
-- CQRS [STARTED]
-  - Owner: Rodrigo Cabrera/Rogelio Ramirez Rubio
-- Event Sourcing [Started]
-  - Owner: Kurt Tometich
-- Saga [NOT STARTED]
+- Event Sourcing [COMPLETE]
+  - Author: Kurt Tometich
+- Saga [COMPLETE STARTED]
+  - Author: Jordi Macià
+- Claim check [IN PROGRESS]
+  - Authors: Rodrigo Cabrera/Rogelio Ramirez Rubio
+- CQRS [IN PROGRESS]
+  - Authors: Rodrigo Cabrera/Rogelio Ramirez Rubio
 - Projections/materialized views [NOT STARTED]
 - Error Callback from consumer [NOT STARTED]
+
+### EventStorming
+
+- Big Picture [COMPLETE]
+  - Owner: Brian Zambrano
 
 ## Local build/development
 
