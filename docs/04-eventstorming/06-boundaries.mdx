@@ -1,0 +1,27 @@
+---
+id: step-6
+title: Step 6 - Pivotal events
+---
+
+{/* Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved. */}
+{/* SPDX-License-Identifier: CC-BY-SA-4.0 */}
+
+At this stage there is more than enough information to identify "pivotal events" or "key events."
+These events are where there is a significant change is the process. These are very important since
+they represent the emergent of business capabilities, or a bounded context.
+
+There is no specific rules on how or where to find pivotal events. However, there are a few
+techniques and clues.
+
+- Look for duplicate events. When a single event is written many times or with various language,
+  something important is happening. In the example, "Payment completed" is an example that has many
+  duplicates.
+- Look for a handoff from one person to another. A handoff between people can show that there is a
+  clear change is purpose or business outcome from the events. Look how a `potential user` changes
+  to a `known user` in the example
+- Identify changes in language. Do the words and ideas between two bounds feel like they are working
+  on the same thing? In the diagram, the "Payment verification" phase mixes payment concepts with
+  "gift code." There may be another boundary here that needs exploration.
+
+![Identifying pivotal events is the first step in finding the elusive bounded
+context](./diagrams/sticky-notes-pivotal-events.svg)

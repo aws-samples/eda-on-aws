@@ -64,6 +64,10 @@ figcaption.figure-caption {
 .person-quote {
   font-size: xx-large;
 }
+.person-quote > p{
+  margin-bottom: 0;
+}
+
 .quote-author {
   margin-left: 1rem;
   font-size: large;
