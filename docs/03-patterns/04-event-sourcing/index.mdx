@@ -4,15 +4,13 @@ title: Event Sourcing
 description: Keeping track of application state as a series of events
 ---
 
-import { ProfileCardTometich } from "@site/src/components/ProfileCardTometich"
+import { ProfileCardTometich } from "@site/src/components/ProfileCard"
 import { FigureCaption } from "@site/src/components/FigureCaption"
-import { PersonQuote } from "@site/src/components/PersonQuote"
-import currentStateImg from './img/currentStateImpl.jpeg'
-import eventSourceImg from './img/eventSourceImpl.jpeg'
-import cqrsImg from './img/CQRS.png'
-import eventbridgeImg from './img/solutionArchitectureEventbridge.png'
 
-
+import currentStateImg from "./img/currentStateImpl.jpeg"
+import eventSourceImg from "./img/eventSourceImpl.jpeg"
+import cqrsImg from "./img/CQRS.png"
+import eventbridgeImg from "./img/solutionArchitectureEventbridge.png"
 
 # Event Sourcing: maintaining a historical record of events
 
@@ -21,88 +19,174 @@ import eventbridgeImg from './img/solutionArchitectureEventbridge.png'
 This article explains what event sourcing is, common use cases, considerations and examples.
 
 :::
+
 <ProfileCardTometich />
 
-[//]: # (Background - Stories on Accounting and SCM as examples)
+[//]: # "Background - Stories on Accounting and SCM as examples"
 
-Systems you interact with everyday use an architectural pattern called event sourcing. Your banking system tracks credit and debit transactions that have occurred over the lifetime of the account. Source code management systems use event sourcing to go back in time to review and revert changes. Business domains such as healthcare or Federal Agencies require strict audit logs of every action taken. At its core, event sourcing is collecting facts (events) that have occurred in the past.
+Systems you interact with everyday use an architectural pattern called event sourcing. Your banking
+system tracks credit and debit transactions that have occurred over the lifetime of the account.
+Source code management systems use event sourcing to go back in time to review and revert changes.
+Business domains such as healthcare or Federal Agencies require strict audit logs of every action
+taken. At its core, event sourcing is collecting facts (events) that have occurred in the past.
 
-In some cases, storing the current state for a domain object isn't enough. You need a timeline that represents exactly what's occurred. You need to answer questions like "how did this arrive in this state?" and "what events occurred and who performed them?" Event sourcing can answer these questions. In this article you'll learn how to architect such a system and understand its benefits and considerations.
+In some cases, storing the current state for a domain object isn't enough. You need a timeline that
+represents exactly what's occurred. You need to answer questions like "how did this arrive in this
+state?" and "what events occurred and who performed them?" Event sourcing can answer these
+questions. In this article you'll learn how to architect such a system and understand its benefits
+and considerations.
 
 ## Event Sourcing Explained
-Event sourcing stores each event over time as a sequence, as opposed to storing the current state.  As events occur, they're logged to an immutable event store.  What's typically stored is an id, timestamp, current state, operation performed, and resulting state; however, this can be customized. With a full history of events, an entire system can be rebuilt from scratch.
 
-It’s common for applications to store the current state of an object. This is efficient; however, if a history of changes is required, this becomes difficult to produce. Let's take an example of a banking account.
+Event sourcing stores each event over time as a sequence, as opposed to storing the current state.
+As events occur, they're logged to an immutable event store. What's typically stored is an id,
+timestamp, current state, operation performed, and resulting state; however, this can be customized.
+With a full history of events, an entire system can be rebuilt from scratch.
+
+It’s common for applications to store the current state of an object. This is efficient; however, if
+a history of changes is required, this becomes difficult to produce. Let's take an example of a
+banking account.
 
 With current state implementation, you store the current value of the bank account.
-<div style={{textAlign: 'center'}}>
-    <img src={currentStateImg} alt="Example banner" width={"600"} />;
+
+<div style={{ textAlign: "center" }}>
+  <img src={currentStateImg} alt="Example banner" width={"600"} />;
 </div>
 <FigureCaption>Fig 1. Storing Current State</FigureCaption>
 
 With event sourcing, events are stored as a sequence over time:
-<div style={{textAlign: 'center'}}>
-    <img src={eventSourceImg} alt="Example banner" width={"500"} />;
+
+<div style={{ textAlign: "center" }}>
+  <img src={eventSourceImg} alt="Example banner" width={"500"} />;
 </div>
 <FigureCaption>Fig 2. Event Sourcing Timeline</FigureCaption>
 
-At the third state in both examples, $100 exists in the account, but the difference is knowing how the application arrived at that state.
+At the third state in both examples, $100 exists in the account, but the difference is knowing how
+the application arrived at that state.
 
-What if this was your account, and you didn't know the utility bill caused the withdrawal of $100 dollars? How would the bank prove this? This is a trivial scenario, but imagine if you had millions of accounts and thousands of transactions.
+What if this was your account, and you didn't know the utility bill caused the withdrawal of $100
+dollars? How would the bank prove this? This is a trivial scenario, but imagine if you had millions
+of accounts and thousands of transactions.
 
 ### Projections / Aggregates
-How does the current state get calculated if you store everything as a stream of events over time? Projections or aggregate views are created from the events. Think of projections like a database view. It's a specific representation of the events to answer business questions or populate a model in the UI. For instance, a user wants to know how their account arrived at its current state; however, they also need to know the current balance and how much can be withdrawn. These are not inherent to the events, but projections of the facts that have occurred.
+
+How does the current state get calculated if you store everything as a stream of events over time?
+Projections or aggregate views are created from the events. Think of projections like a database
+view. It's a specific representation of the events to answer business questions or populate a model
+in the UI. For instance, a user wants to know how their account arrived at its current state;
+however, they also need to know the current balance and how much can be withdrawn. These are not
+inherent to the events, but projections of the facts that have occurred.
 
 ### Snapshots
-What about performance? If the latest state isn't stored, isn't it possible you'll need to process a lot of events to answer certain business questions? This is where snapshots come in. Snapshots are point in time aggregates of events, like a checkpoint. These checkpoints can be used to arrive quickly at an aggregate state without having to process all the events that led up to it over time. From that snapshot, you can process a minimal number of events that have occurred since.
 
-### CQRS #
-The [Command Query Responsibility Segregation (CQRS)](../cqrs) pattern is often used with event sourcing.  CQRS separates queries (reads) from commands (writes) when each has significantly different requirements and warrants splitting these apart. When CQRS is used with event sourcing, the commands store events as they occur.  On the query side, data is structured differently to meet needs of the consumer applications and often aggregates events and data.
+What about performance? If the latest state isn't stored, isn't it possible you'll need to process a
+lot of events to answer certain business questions? This is where snapshots come in. Snapshots are
+point in time aggregates of events, like a checkpoint. These checkpoints can be used to arrive
+quickly at an aggregate state without having to process all the events that led up to it over time.
+From that snapshot, you can process a minimal number of events that have occurred since.
 
-<div style={{textAlign: 'center'}}>
-    <img src={cqrsImg} alt="Example banner" width={"500"} />;
+### CQRS
+
+The [Command Query Responsibility Segregation (CQRS)](../cqrs) pattern is often used with event
+sourcing. CQRS separates queries (reads) from commands (writes) when each has significantly
+different requirements and warrants splitting these apart. When CQRS is used with event sourcing,
+the commands store events as they occur. On the query side, data is structured differently to meet
+needs of the consumer applications and often aggregates events and data.
+
+<div style={{ textAlign: "center" }}>
+  <img src={cqrsImg} alt="Example banner" width={"500"} />;
 </div>
 <FigureCaption>Fig 3. CQRS</FigureCaption>
 
-Using our banking account example, commands will come through as events and put in our event store. On the query side, you may need to support the current state of funds across all accounts or the aggregate of one account over some time period. The commands also require strong transactional consistency and minimal latency. Whereas the query requirements may not be as strict. CQRS can increase overhead, so the cost of separating queries and commands should be weighed against level of complexity of requirements between the two. Latency, throughput and consistency should be considered.
+Using our banking account example, commands will come through as events and put in our event store.
+On the query side, you may need to support the current state of funds across all accounts or the
+aggregate of one account over some time period. The commands also require strong transactional
+consistency and minimal latency. Whereas the query requirements may not be as strict. CQRS can
+increase overhead, so the cost of separating queries and commands should be weighed against level of
+complexity of requirements between the two. Latency, throughput and consistency should be
+considered.
 
 ## Use Cases and Benefits
-* **Replay Events** - replay any sequence of events to perform testing or recreate states of the system for troubleshooting or debugging.
-* **Rehydrate** - populate or rehydrate multiple environments with different sequences of events to test complex scenarios.
-* **Meet strict audit requirements** - quickly produce a complete, detailed log of events for compliance.
-* **Rebuild** - rebuild all or a portion of the system by replaying any sequence of events.
-* **Holistic view** - bring together events into one log across multiple systems to create a holistic view.
-* **Parallel models** - use existing events to produce multiple copies of states and run forecasting or other calculations.
-* **Retroactive fixes** - go back in time and fix events by replaying them to undo, redo or add changes.
-* **Best for large scale event driven systems** - With trivial systems this level of auditing is not typically required and brings additional overhead.
+
+- **Replay Events** - replay any sequence of events to perform testing or recreate states of the
+  system for troubleshooting or debugging.
+- **Rehydrate** - populate or rehydrate multiple environments with different sequences of events to
+  test complex scenarios.
+- **Meet strict audit requirements** - quickly produce a complete, detailed log of events for
+  compliance.
+- **Rebuild** - rebuild all or a portion of the system by replaying any sequence of events.
+- **Holistic view** - bring together events into one log across multiple systems to create a
+  holistic view.
+- **Parallel models** - use existing events to produce multiple copies of states and run forecasting
+  or other calculations.
+- **Retroactive fixes** - go back in time and fix events by replaying them to undo, redo or add
+  changes.
+- **Best for large scale event driven systems** - With trivial systems this level of auditing is not
+  typically required and brings additional overhead.
 
 ## Considerations
-* **External system consistency** - replaying events may cause unintended consequences with external systems.  For example, payments are made to an external system multiple times.  You can fix this by placing a Gateway or Interface to handle these external calls, then have a toggle available for different modes.
-* **Snapshots and caching** -  some of the event log can be cached for quick access.  The system could crash and be rebuilt from latest snapshot.
-* **Versioning** - this is difficult as events could span long periods of time and event schemas could have changed many times.  An option is to rewrite to a new event store on every upgrade, making necessary changes.
-* **Eventual consistency** - new events are stored to the event store faster than downstream systems can process them.  This can cause some inconsistency in the data.
-* **Immutable** - the event store cannot be tampered with or modified.  Only logical deletes are allowed.  The system is relying on the accuracy and completeness of events.
-* **Command vs. Query** - Storing events and retrieving aggregate data will require different patterns.  Leverage CQRS pattern to separate query logic from event storage and domain specific transaction handling.
-* **Relying on external data** - What if you need to re-run events from the past that rely on external data, such as a product's price. It’s possible the product's price is not the same as it was when the event originally occurred.  This could be intentional behavior, but in some cases it may require storing versions of previous state.
+
+- **External system consistency** - replaying events may cause unintended consequences with external
+  systems. For example, payments are made to an external system multiple times. You can fix this by
+  placing a Gateway or Interface to handle these external calls, then have a toggle available for
+  different modes.
+- **Snapshots and caching** - some of the event log can be cached for quick access. The system could
+  crash and be rebuilt from latest snapshot.
+- **Versioning** - this is difficult as events could span long periods of time and event schemas
+  could have changed many times. An option is to rewrite to a new event store on every upgrade,
+  making necessary changes.
+- **Eventual consistency** - new events are stored to the event store faster than downstream systems
+  can process them. This can cause some inconsistency in the data.
+- **Immutable** - the event store cannot be tampered with or modified. Only logical deletes are
+  allowed. The system is relying on the accuracy and completeness of events.
+- **Command vs. Query** - Storing events and retrieving aggregate data will require different
+  patterns. Leverage CQRS pattern to separate query logic from event storage and domain specific
+  transaction handling.
+- **Relying on external data** - What if you need to re-run events from the past that rely on
+  external data, such as a product's price. It’s possible the product's price is not the same as it
+  was when the event originally occurred. This could be intentional behavior, but in some cases it
+  may require storing versions of previous state.
 
 ## Example
-One way to implement event sourcing on AWS is to use [Amazon Eventbridge](https://aws.amazon.com/pm/eventbridge/).  Amazon EventBridge is a serverless event bus that helps you receive, archive, filter, transform, route, and deliver events.  Events can be delivered to an event bus that uses rules to route events to other services or applications.  The event bus is a natural fit for event sourcing with it's built-in feature for archiving and replaying events.  Rules provide flexibility to route events to downstream services for further processing.
-<div style={{textAlign: 'center'}}>
-    <img src={eventbridgeImg} alt="Example banner" width={"1000"} />
+
+One way to implement event sourcing on AWS is to use
+[Amazon Eventbridge](https://aws.amazon.com/pm/eventbridge/). Amazon EventBridge is a serverless
+event bus that helps you receive, archive, filter, transform, route, and deliver events. Events can
+be delivered to an event bus that uses rules to route events to other services or applications. The
+event bus is a natural fit for event sourcing with it's built-in feature for archiving and replaying
+events. Rules provide flexibility to route events to downstream services for further processing.
+
+<div style={{ textAlign: "center" }}>
+  <img src={eventbridgeImg} alt="Example banner" width={"1000"} />
 </div>
 <FigureCaption>Fig 4. Eventbridge Solution Architecture</FigureCaption>
 
-1. Events are processed through the events API and sent to an EventBridge custom bus.  Eventbridge also receives AWS Service related events and can [receive events from SaaS applications](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-saas.html).
-1. Rules are applied to events sent to each event bus and sent to downstream targets, such as domain specific microservices for further processing.
-1. Microservices process events, perform aggregation and storage of data for later consumption.  These microservices may come in many forms, such as [REST](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-rest-api.html) or [GraphQL APIs](https://aws.amazon.com/pm/appsync/), or [Step Function](https://aws.amazon.com/pm/step-functions/) workflows.
-1. Continual discovery is performed on each selected event bus to generate schemas on the fly and store them in the schema registry.
-1. Events are archived as they are received and stored in the Eventbridge provided archive.  Events from the archive can be replayed by applying specific rules and targets.
-1. Code bindings are generated from schemas in the registry to provide downstream services to more easily consume and process events.
+1. Events are processed through the events API and sent to an EventBridge custom bus. Eventbridge
+   also receives AWS Service related events and can
+   [receive events from SaaS applications](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-saas.html).
+1. Rules are applied to events sent to each event bus and sent to downstream targets, such as domain
+   specific microservices for further processing.
+1. Microservices process events, perform aggregation and storage of data for later consumption.
+   These microservices may come in many forms, such as
+   [REST](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-rest-api.html) or
+   [GraphQL APIs](https://aws.amazon.com/pm/appsync/), or
+   [Step Function](https://aws.amazon.com/pm/step-functions/) workflows.
+1. Continual discovery is performed on each selected event bus to generate schemas on the fly and
+   store them in the schema registry.
+1. Events are archived as they are received and stored in the Eventbridge provided archive. Events
+   from the archive can be replayed by applying specific rules and targets.
+1. Code bindings are generated from schemas in the registry to provide downstream services to more
+   easily consume and process events.
 
 ## Conclusion
-Event sourcing is a good fit for complex business domains that require a historical log of events.  The benefits of this pattern need to be weighed against the complexity of constructing projections or aggregates across many events and synchronization across domains.
+
+Event sourcing is a good fit for complex business domains that require a historical log of events.
+The benefits of this pattern need to be weighed against the complexity of constructing projections
+or aggregates across many events and synchronization across domains.
 
 ## Learn more, take action
+
 If you're ready to put this pattern into action, check out these resources to help you get started:
-* [Serverlessland EventBridge patterns](https://serverlessland.com/patterns?services=eventbridge)
-* [AWS Prescriptive Guideance - Event sourcing](https://docs.aws.amazon.com/prescriptive-guidance/latest/modernization-data-persistence/service-per-team.html)
+
+- [Serverlessland EventBridge patterns](https://serverlessland.com/patterns?services=eventbridge)
+- [AWS Prescriptive Guideance - Event sourcing](https://docs.aws.amazon.com/prescriptive-guidance/latest/modernization-data-persistence/service-per-team.html)
