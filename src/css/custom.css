@@ -142,6 +142,9 @@ figcaption.figure-caption {
   /* https: //getcssscan.com/css-box-shadow-examples */
   box-shadow: rgba(255, 255, 255, 0.1) 0px 1px 1px 0px inset, rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px;
 }
+[data-theme='dark'] .profile-card  {
+  background-color: var(--amzn-color-squid);
+}
 
 .profile-card * {
   -webkit-box-sizing: border-box;
@@ -194,6 +197,11 @@ figcaption.figure-caption {
   display: inline-block;
   margin-right: 20px;
   font-size: 1.5em;
+}
+
+[data-theme='dark'] .profile-card h5 ,
+[data-theme='dark'] .profile-card .icons svg {
+  color: #CCC;
 }
 
 .profile-card .icons svg:hover {
