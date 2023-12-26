@@ -49,26 +49,26 @@ your developers and teams into domain experts._
 
 ## Exploring boundaries
 
-A problem domain is the area you and your company are working. You create solutions within this
+A business domain is the area you and your company are working. You create solutions within this
 domain to provide value to your customers and to make money or exist as a business entity. Most
-problem domains are complex enough to have sub-domains within them. An overly simplistic example is
-e-commerce. If you are working in the problem domain of e-commerce, shipping, billing and customer
-support would be examples of sub-domains. Within each of these sub-domains would be boundaries where
-engineering teams would build solutions. The customer support sub-domain could operate multiple
-systems to handle returns, billing, website orders, etc.
+business domains are complex enough to contain subdomains. An overly simplistic example is
+e-commerce. Shipping, billing and customer support are examples of subdomains within the e-commerce
+business domains. Each subdomain may itself have multiple boundaries inside that need specific
+solutions in order to provide business value. For example, the customer support subdomain may
+contain multiple software systems to handle returns, billing, and website orders.
 
 The natural question is how do you identify, define and break down a domain and its subdomains so
 that you can solve the challenges in each of them? EventStorming can help. The outcomes from
 EventStorming sessions vary depending on why type of session you are running, but the goal is always
-the same: come to a shared understand of a business process and model so that you can build and
-deliver the right solution to your customers.
+the same: to come to a shared understand of a business process and model so that you can build and
+deliver the right solution for your customers.
 
-![A problem domain is comprised of multiple sub-domains.](./diagrams/domains-and-subdomains.svg)
+![A business domain is comprised of multiple subdomains.](./diagrams/domains-and-subdomains.svg)
 
 :::note[What is EventStorming?]
 
 <h2>
-  EventStorming is a workshop-based approach used to break down a non-trivial problem domain with
+  EventStorming is a workshop-based approach used to break down a non-trivial business domain with
   the goal of coming to a shared understanding across an organization or team.
 </h2>
 
@@ -82,7 +82,7 @@ questions, sequence events in the business process, call out challenges and toge
 of how their business process works, or should work.
 
 EventStorming focuses on _understanding_ vs. _solutioning_. Through EventStorming, you can find
-sub-domains, identifying bounded contexts and most importantly discover these collaboratively with a
+subdomains, identifying bounded contexts and most importantly discover these collaboratively with a
 cross section of your business. During the process you use domains events as a language to describe
 the process that you will model. In event-driven architectures, you can use these boundaries and
 events as a starting point when you start to build independent and loosely couples systems.
@@ -111,9 +111,9 @@ outcomes.
 
 - **Big Picture**: Designed to map a large and complex system or process. This is high level with
   the majority of the participants being domain experts. Job family is mostly irrelevant, as long as
-  people have a good understanding of the problem domain. The focus of a Big Picture session is
+  people have a good understanding of the business domain. The focus of a Big Picture session is
   largely the _current state_ rather than future state.
-- **Process**: This is the next level down in terms of details. Once a sub-domain or business
+- **Process**: This is the next level down in terms of details. Once a subdomain or business
   boundaries have been identified in a Big Picture session, you can use a process-level session to
   go into more depth. This flavor of EventStorming blends the current state with some _future
   state_. It may involve more engineers.
