@@ -33,12 +33,11 @@ sometimes confusing event-driven architecture topics and patterns.
 
 - Event Sourcing [COMPLETE]
   - Author: Kurt Tometich
-- Saga [COMPLETE STARTED]
+- Saga [COMPLETE]
   - Author: Jordi Macià
 - Claim check [IN PROGRESS]
   - Authors: Rodrigo Cabrera/Rogelio Ramirez Rubio
-- CQRS [IN PROGRESS]
-  - Authors: Rodrigo Cabrera/Rogelio Ramirez Rubio
+- CQRS [NOT STARTED]
 - Projections/materialized views [NOT STARTED]
 - Error Callback from consumer [NOT STARTED]
 
