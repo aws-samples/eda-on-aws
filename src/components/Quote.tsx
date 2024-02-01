@@ -24,7 +24,7 @@ export const PersonQuote = ({ children, author, url }) => {
       </span>
       {url && (
         <div className="quote-ref">
-          <a href="{url}">
+          <a href={url}>
             <i>{url}</i>
           </a>
         </div>
