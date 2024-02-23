@@ -1,0 +1,34 @@
+@startuml
+
+group Create the message - Store First
+    "Client" -> "API Gateway": Send the blog's entry title
+    "API Gateway" -> "Lambda": Pass the blog's entry title
+    "Lambda" -> "Lambda": Generate reference/key
+    "Lambda" -> "DynamoDB": Store the reference/key and blog's entry title
+    note right
+        The blog's entry now exists,
+        but without content
+    end note
+    "DynamoDB" -> "Lambda": Return confirmation
+    "Lambda" -> "API Gateway": Pass the reference/key
+    "API Gateway" -> "Client": Return the reference/key
+end
+|||
+group Waiting time
+	"Client" -> "Client": Client gathers blog's content
+end
+|||
+group Complete/add information to message - Enrich Later
+	"Client" -> "API Gateway": Send the reference/key and blog's content
+    "API Gateway" -> "Lambda": Pass the reference/key and blog's content
+    "Lambda" -> "DynamoDB": Using the reference/key, add the blog's content
+    note right
+        The blog's entry is complete
+        with its content
+    end note
+    "DynamoDB" -> "Lambda": Return confirmation
+    "Lambda" -> "API Gateway": Pass confirmation
+    "API Gateway" -> "Client": Return confirmation
+end
+
+@enduml

@@ -1,0 +1,40 @@
+@startuml
+"Client" -> "Client": Generate a reference/key
+"Client" -> "S3": Store the feedback in S3 using the reference/key
+"Client" -> "EventBridge": Send event with reference/key, S3 location and stars
+
+group EventBridge Rules
+	group 1-2 stars concurrent invocations
+        group Word Count flow
+            "EventBridge" -> "Lambda": Invoke function to count words in feedback
+            "Lambda" -> "S3": Get the feedback stored as an object
+            "S3" -> "Lambda": Feedback object retrieved
+            "Lambda" -> "Lambda": Count words
+            "Lambda" -> "SQS": Send message with reference/key to queue for further processing
+            "Lambda" -> "DynamoDB": Create or update item with feedback word count attributes
+        end
+
+        group Feeling flow
+            "EventBridge" -> "Lambda": Invoke function to identify the feeling in feedback
+            "Lambda" -> "S3": Get the feedback stored as an object
+            "S3" -> "Lambda": Feedback object retrieved
+            "Lambda" -> "Lambda": Identify feedback feeling
+            "Lambda" -> "SQS": Send message with reference/key to queue for further processing
+            "Lambda" -> "DynamoDB": Create or update item with feedback feeling attributes
+            group Post-SQS processing
+                "Lambda" -> "SQS": Poll for new messages
+                "SQS" -> "Lambda": Messages retrieved
+                "Lambda" -> "Customer Analysis": Send feedback and stars to be analyzed by customer teams
+            end
+        end
+    end
+    
+    group 3-5 stars
+    	"EventBridge" -> "Lambda": Invoke function to send feedback to dashboard
+    	"Lambda" -> "Dashboard & Other Applications": Send stars to show in dashboard and further proicessing
+    end
+end
+
+"Dashboard & Other Applications" -> "SQS": Further processing
+"Dashboard & Other Applications" -> "DynamoDB": Further processing
+@enduml
