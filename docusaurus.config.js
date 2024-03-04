@@ -7,6 +7,7 @@ const darkCodeTheme = themes.dracula
 
 const PRODUCTION_URL = process.env.PRODUCTION_URL || "https://integration-services.pages.aws.dev"
 const BASE_URL = process.env.BASE_URL || "/eda/eda-on-aws-patterns/"
+const MEASUREMENT_ID = process.env.MEASUREMENT_ID || "G-xxxxxxxxxx"
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -55,6 +56,10 @@ const config = {
         blog: false,
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
+        },
+        gtag: {
+          trackingID: MEASUREMENT_ID,
+          anonymizeIP: true,
         },
       }),
     ],
