@@ -12,6 +12,7 @@ jobs:
     env:
       PRODUCTION_URL: https://aws-samples.github.io
       BASE_URL: /eda-on-aws/
+      MEASUREMENT_ID: ${{ secrets.MEASUREMENT_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
