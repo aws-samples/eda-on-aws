@@ -4,15 +4,10 @@ title: Event Sourcing
 description: Keeping track of application state as a series of events
 ---
 
-import { ProfileCardTometich } from "@site/src/components/ProfileCard"
-import { FigureCaption } from "@site/src/components/FigureCaption"
+import { EventSourcingProfileCard } from "@site/src/components/ProfileCard";
+import { FigureCaption } from "@site/src/components/FigureCaption";
 
-import currentStateImg from "./img/currentStateImpl.jpeg"
-import eventSourceImg from "./img/eventSourceImpl.jpeg"
-import cqrsImg from "./img/CQRS.png"
-import eventbridgeImg from "./img/solutionArchitectureEventbridge.png"
-
-# Event Sourcing: maintaining a historical record of events
+# Event Sourcing: domain events as the source of truth
 
 :::info
 
@@ -20,53 +15,95 @@ This article explains what event sourcing is, common use cases, considerations a
 
 :::
 
-<ProfileCardTometich />
+<EventSourcingProfileCard />
 
-[//]: # "Background - Stories on Accounting and SCM as examples"
+# Event Sourcing
 
-Systems you interact with everyday use an architectural pattern called event sourcing. Your banking
-system tracks credit and debit transactions that have occurred over the lifetime of the account.
-Source code management systems use event sourcing to go back in time to review and revert changes.
-Business domains such as healthcare or Federal Agencies require strict audit logs of every action
-taken. At its core, event sourcing is collecting facts (events) that have occurred in the past.
+This document discusses an approach to building event sourced systems. The use cases, architecture
+patterns and implementation details using both AWS native services and open source options.
 
-In some cases, storing the current state for a domain object isn't enough. You need a timeline that
-represents exactly what's occurred. You need to answer questions like "how did this arrive in this
-state?" and "what events occurred and who performed them?" Event sourcing can answer these
-questions. In this article you'll learn how to architect such a system and understand its benefits
-and considerations.
+Event Sourcing is an architecture pattern that stores an application’s state as an append-only log
+of events. As well as storing the events, you also have the context surrounding that event. You can
+see the set of actions that happened that caused your application to get to it’s current state. This
+differs from the traditional approach of building applications in which only the current application
+state is stored. With a traditional data storage mechanism it is almost impossible to understand how
+a record got to the state it is currently in.
 
-## Event Sourcing Explained
+If you consider your bank account for a moment. Seeing the debits and credits against your account
+is a close example to how an event sourced system works. You can see the debits and credits that
+happened, and how your current account balance got it’s current amount. In a traditional table based
+approach, you would only store the current account balance and no information about how your account
+got to that amount. The current balance is stored and mutated, but you would never know how the
+account got into that state.
 
-Event sourcing stores each event over time as a sequence, as opposed to storing the current state.
-As events occur, they're logged to an immutable event store. What's typically stored is an id,
-timestamp, current state, operation performed, and resulting state; however, this can be customized.
-With a full history of events, an entire system can be rebuilt from scratch.
+## Why Use Event Sourcing?
 
-It’s common for applications to store the current state of an object. This is efficient; however, if
-a history of changes is required, this becomes difficult to produce. Let's take an example of a
-banking account.
+Event Sourcing is a viable solution for a wide range of industries and application use cases.
+Instead of discussing specific domains where event sourcing is relevant, let’s focus on some of the
+benefits of using event sourcing. Because an event sourced system is based on an append-only log,
+one of the key benefits is auditability. If the ability to view the state of your system at a
+specific point in time is useful then event sourcing is a great choice. You can easily perform root
+cause analysis as you can see exactly how the current state of the system was reached. Imagine
+checking your bank balance and you had $2,000 less than expected but no way to work out why.
 
-With current state implementation, you store the current value of the bank account.
+The immutable log of events is highly beneficial for event replay. If new services are introduced or
+existing services go offline temporarily, the log of all past events allows these services to replay
+the events and bring their state up-to-date. The log serves as a reliable source of truth, enabling
+services to catch up with the current system state by replaying the relevant events. The technical
+considerations and implementation details of event replay are covered later in this document.
 
-<div style={{ textAlign: "center" }}>
-  <img src={currentStateImg} alt="Example banner" width={"600"} />;
-</div>
-<FigureCaption>Fig 1. Storing Current State</FigureCaption>
+Sharing data between services in the form of events also allows downstream consumers to more easily
+react to changes elsewhere in the system in real time. LinkedIn discuss this approach at length in a
+post
+[on their engineering blog](https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying).
+They use an append-only log as a way to share data between different services and allow near real
+time analytics to be performed. There is a key distinction here between event sourcing and event
+streaming, which is covered later in this document.
 
-With event sourcing, events are stored as a sequence over time:
+## Event Sourcing Key Concepts
 
-<div style={{ textAlign: "center" }}>
-  <img src={eventSourceImg} alt="Example banner" width={"500"} />;
-</div>
-<FigureCaption>Fig 2. Event Sourcing Timeline</FigureCaption>
+Every change that happens in your application is represented as an event and appended to the event
+store. The event store is simply a persistent database layer, of which the technology choice is
+discussed later in this document. All events stored in the event store are immutable, and the event
+data typically also includes additional metadata like timestamps, unique ID’s and correlation
+information. All business changes are applied as an event which is appended to the end of the log.
+This provides full visibility into the lifecycle of a domain object in your application, for example
+an invoice.
 
-At the third state in both examples, $100 exists in the account, but the difference is knowing how
-the application arrived at that state.
+Inside the event store, events are stored in a stream. This is not to be confused with event
+streaming, which will be discussed later in this document. An event stream inside the event store
+refers to all of the events related to a specific domain object. Event streams are the source of
+truth for the domain object and contain the full history of the changes. Each stream will have an
+identifier specific to the domain, in this case the Invoice Number is used as the stream identifier.
+Events are stored ordered inside the stream. Typically each event is added with a numeric
+incremental position number that defines the order of the event in the stream.
 
-What if this was your account, and you didn't know the utility bill caused the withdrawal of $100
-dollars? How would the bank prove this? This is a trivial scenario, but imagine if you had millions
-of accounts and thousands of transactions.
+![Events in an event stream](./img/events-in-stream.png)
+
+<FigureCaption>Fig 1. Events in an event stream</FigureCaption>
+
+When the application state needs to be re-created, events from the relevant stream are read and
+applied to the domain object in order. With large numbers of events, this read and apply process
+will start to have an ever increasing performance impact. Event Streams can store large number of
+events, and you can have large numbers of streams. You should have lots of short-lived streams with
+fewer events, instead of long-lived streams with lots of events. Shorter streams help with
+maintenance, versioning and reduces the need for snap-shotting which will be discussed later in this
+document.
+
+![Change data capture with Event Sourcing](./img/events-cdc-general.png)
+
+<FigureCaption>Fig 2. Change data capture with Event Sourcing</FigureCaption>
+
+A common implementation detail when deciding on an event store technology is the ability to use
+change data capture (CDC) or use a database engine that can stream database changes (e.g. DynamoDB
+streams). This allows events to be published for downstream consumers to subscribe to. External
+consumers should never subscribe directly to the events data coming out of the event store. Rather,
+a message translator should be in place to ensure any events published outside of the domain are
+translated to a public event, ensuring domain implementation details are not leaked to external
+services. This aids with evolvability and versioning, as you can make changes to your domains events
+without worrying about downstream consumers.Message translator has full control on which domain
+event to be published to external consumers. Using event sourcing system, You can control storing
+domain events and publishing external integration events for downstream changes.
 
 ### Projections / Aggregates
 
@@ -77,116 +114,208 @@ in the UI. For instance, a user wants to know how their account arrived at its c
 however, they also need to know the current balance and how much can be withdrawn. These are not
 inherent to the events, but projections of the facts that have occurred.
 
-### Snapshots
+Projections allow queries to run against pre-optimized views built specifically for the required
+access pattern. It’s important to note that the event store is single source of truth. Any
+projections could be destroyed at any time and recreated by replaying events stored in the event
+store. This opens up interesting possibilities for the technology used to store your projections, as
+this could be a cache or even in-memory. A single system might have several different projections to
+meet the different required access patterns.
 
-What about performance? If the latest state isn't stored, isn't it possible you'll need to process a
-lot of events to answer certain business questions? This is where snapshots come in. Snapshots are
-point in time aggregates of events, like a checkpoint. These checkpoints can be used to arrive
-quickly at an aggregate state without having to process all the events that led up to it over time.
-From that snapshot, you can process a minimal number of events that have occurred since.
+## Event Sourcing vs Event Streaming
 
-### CQRS
+A common confusion is to mistake event sourcing for event streaming. This becomes more confusing
+when the term ‘stream’ is used within event sourcing to describe the events related to a specific
+domain object called an aggregate root. Event sourcing is an append-only log of business events;
+event streaming is an integration technology for sharing events. For example, in the message
+translator example above the message bus could be replaced with a streaming technology (Kafka,
+Kinesis). Downstream consumers could then subscribe to that stream of events in the same way they
+would subscribe to events on an event/message bus.
 
-The [Command Query Responsibility Segregation (CQRS)](../cqrs) pattern is often used with event
-sourcing. CQRS separates queries (reads) from commands (writes) when each has significantly
-different requirements and warrants splitting these apart. When CQRS is used with event sourcing,
-the commands store events as they occur. On the query side, data is structured differently to meet
-needs of the consumer applications and often aggregates events and data.
+An event store exists inside the boundaries of a given microservice or domain. And when data is
+shared outside of that microservice it would be translated into a public event or external
+integration event . Utilizing a streaming technology as your event store, opens up the possibility
+for downstream consumers to subscribe directly to your event store instead of first passing through
+a translation layer. The EventStoreDB website covers this topic, stating that
+[“EventStoreDB is about storing and streaming data, Kafka is about data in motion”.](https://www.eventstore.com/blog/eventstoredb-kafka)
+Kafka (or Kinesis) is a good fit for **streaming** events to downstream systems, and provides an
+element of durability that would allow a consumer to replay all events from a given point in time.
+However, an individual microservice using a shared Kafka/Kinesis resource is an example of a leaky
+abstraction and should be avoided.
 
-<div style={{ textAlign: "center" }}>
-  <img src={cqrsImg} alt="Example banner" width={"500"} />;
-</div>
-<FigureCaption>Fig 3. CQRS</FigureCaption>
+For the remainder of this document, Kafka/Kinesis will be referred to as streaming technologies
+whilst the stream of events related to a given domain object will be referred to as the event
+stream.
 
-Using our banking account example, commands will come through as events and put in our event store.
-On the query side, you may need to support the current state of funds across all accounts or the
-aggregate of one account over some time period. The commands also require strong transactional
-consistency and minimal latency. Whereas the query requirements may not be as strict. CQRS can
-increase overhead, so the cost of separating queries and commands should be weighed against level of
-complexity of requirements between the two. Latency, throughput and consistency should be
-considered.
+## Taking Snapshots
 
-## Use Cases and Benefits
+Whenever a mutation is applied to a given domain object, all of the events in the object’s event
+stream are read from the event store and applied to the object object in memory. The new change is
+then applied based on the mutation command which will append additional event(s) to the event stream
+for that aggregrate root. A potential challenge may occur when the volume of events in a single
+event stream becomes excessively high, causing a detrimental effect on the overall performance of
+your application from the number of read operations that must occur to load the current state of the
+object.
 
-- **Replay Events** - replay any sequence of events to perform testing or recreate states of the
-  system for troubleshooting or debugging.
-- **Rehydrate** - populate or rehydrate multiple environments with different sequences of events to
-  test complex scenarios.
-- **Meet strict audit requirements** - quickly produce a complete, detailed log of events for
-  compliance.
-- **Rebuild** - rebuild all or a portion of the system by replaying any sequence of events.
-- **Holistic view** - bring together events into one log across multiple systems to create a
-  holistic view.
-- **Parallel models** - use existing events to produce multiple copies of states and run forecasting
-  or other calculations.
-- **Retroactive fixes** - go back in time and fix events by replaying them to undo, redo or add
-  changes.
-- **Best for large scale event driven systems** - With trivial systems this level of auditing is not
-  typically required and brings additional overhead.
+A common solution to this problem is to take snapshots. Snapshotting is the process of periodically
+taking and storing the current state of your application in the database. When current state needs
+to be reconstructed, the snapshot is read and only the delta of events since the snapshot was taken
+need to be applied.
 
-## Considerations
+The challenge arises when trying to establish how often to take the snapshot. Every day, week or
+month? Every 10 events? Every 20 events? And it’s difficult to predict now, how the needs of your
+application will change tomorrow.
 
-- **External system consistency** - replaying events may cause unintended consequences with external
-  systems. For example, payments are made to an external system multiple times. You can fix this by
-  placing a Gateway or Interface to handle these external calls, then have a toggle available for
-  different modes.
-- **Snapshots and caching** - some of the event log can be cached for quick access. The system could
-  crash and be rebuilt from latest snapshot.
-- **Versioning** - this is difficult as events could span long periods of time and event schemas
-  could have changed many times. An option is to rewrite to a new event store on every upgrade,
-  making necessary changes.
-- **Eventual consistency** - new events are stored to the event store faster than downstream systems
-  can process them. This can cause some inconsistency in the data.
-- **Immutable** - the event store cannot be tampered with or modified. Only logical deletes are
-  allowed. The system is relying on the accuracy and completeness of events.
-- **Command vs. Query** - Storing events and retrieving aggregate data will require different
-  patterns. Leverage CQRS pattern to separate query logic from event storage and domain specific
-  transaction handling.
-- **Relying on external data** - What if you need to re-run events from the past that rely on
-  external data, such as a product's price. It’s possible the product's price is not the same as it
-  was when the event originally occurred. This could be intentional behavior, but in some cases it
-  may require storing versions of previous state.
+The alternative approach, is to either have long lived streams with very few events or to simply
+break your streams down into the shortest possible number of events. An example provided by Oskar
+Dudzyk in this domain is for the cashiers in a retail store. You could have:
 
-## Example
+- One single event streams for all events related to a given store
+- An event stream for each day of trading
+- An event stream for each active cash register/till
+- An event stream for each individual cashier’s shift, working on each individual cash register/till
 
-One way to implement event sourcing on AWS is to use
-[Amazon Eventbridge](https://aws.amazon.com/pm/eventbridge/). Amazon EventBridge is a serverless
-event bus that helps you receive, archive, filter, transform, route, and deliver events. Events can
-be delivered to an event bus that uses rules to route events to other services or applications. The
-event bus is a natural fit for event sourcing with it's built-in feature for archiving and replaying
-events. Rules provide flexibility to route events to downstream services for further processing.
+The last example has a very clear beginning and end and is the shortest possible stream you could
+implement for this domain. The CashierShiftEnded event could include the closing balance of the
+register/till, which would then form the first event in the next cashier’s shift. This process is
+referred to as book-ending.
 
-<div style={{ textAlign: "center" }}>
-  <img src={eventbridgeImg} alt="Example banner" width={"1000"} />
-</div>
-<FigureCaption>Fig 4. Eventbridge Solution Architecture</FigureCaption>
+## Event Replay and Hydrating New Services
 
-1. Events are processed through the events API and sent to an EventBridge custom bus. Eventbridge
-   also receives AWS Service related events and can
-   [receive events from SaaS applications](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-saas.html).
-1. Rules are applied to events sent to each event bus and sent to downstream targets, such as domain
-   specific microservices for further processing.
-1. Microservices process events, perform aggregation and storage of data for later consumption.
-   These microservices may come in many forms, such as
-   [REST](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-rest-api.html) or
-   [GraphQL APIs](https://aws.amazon.com/pm/appsync/), or
-   [Step Function](https://aws.amazon.com/pm/step-functions/) workflows.
-1. Continual discovery is performed on each selected event bus to generate schemas on the fly and
-   store them in the schema registry.
-1. Events are archived as they are received and stored in the Eventbridge provided archive. Events
-   from the archive can be replayed by applying specific rules and targets.
-1. Code bindings are generated from schemas in the registry to provide downstream services to more
-   easily consume and process events.
+In an event-sourced system, the ability to replay events is crucial for data recovery and
+reconstruction, as replaying events allows you to reconstruct the entire system state at any given
+point, enabling data recovery in case of failures or corruption. It also provides a complete history
+of changes, facilitating auditing and analysis of user activities. By reproducing event sequences,
+you can simulate scenarios and identify issues more easily for testing and debugging purposes.
+
+Replaying events helps rebuild data in new formats or system versions, ensuring consistency during
+migrations or upgrades. Additionally, events can be replayed to create different data views or
+projections tailored to specific use cases, enabling parallel processing and projections.
+Furthermore, it enables time-travel and analysis of the system's state at any given point in
+history, allowing for historical data analysis.
+
+Effective event replay mechanisms are necessary to manage performance overhead, especially in
+large-scale systems with high event volumes.
+
+## AWS Native Implementation Example
+
+Event sourcing can be implemented on AWS using services such as RDS, databases on EC2 or DynamoDB.
+In the example below we show one possible method using Amazon DynamoDB.
+
+### Event Sourcing
+
+To implement event sourcing on Amazon Dynamo DB, first consider what event sourcing is at its core:
+an ordered, append-only log of events per entity stored as a stream. This can be implemented simply
+with a single table using the `streamId` as the table’s partition key and the `eventNumber` as the
+sort key. Add in several important additional properties when saving the event data like the event
+type, date the event occurred and the unique data for the event.
+
+- `streamId` - unique identifier for the entity.
+- `eventNumber` - specifies the numerical order of the event in the entity’s stream
+- `eventType` - indicates the name and version of the event
+- `updated` - the date/time the event was created
+- `data` - varies based on the event being stored
+
+Using the invoice example from above, the events for a single invoice could be represented in JSON
+and stored in the Dynamo DB table as follows:
+
+```javascript
+{
+  "streamId": "inv145",
+  "eventNumber": 0,
+  "eventType": "invoice-created.v1",
+  "updated": "2024-03-13T12:13:42.492473Z",
+  "data": {
+    "customer": "cus123",
+    "total": 123.45
+  }
+},
+{
+  "streamId": "inv145",
+  "eventNumber": 1,
+  "eventType": "invoice-approved.v1",
+  "updated": "2024-03-14T12:13:42.492473Z",
+  "data": {
+    "approved-by": "emp123"
+  }
+},
+{
+  "streamId": "inv145",
+  "eventNumber": 2,
+  "eventType": "invoice-sent.v1",
+  "updated": "2024-03-14T12:16:37.492473Z",
+  "data": {}
+},
+{
+  "streamId": "inv145",
+  "eventNumber": 3,
+  "eventType": "invoice-paid.v1",
+  "updated": "2024-04-14T08:32:26.00000Z",
+  "data": {
+    "payment-amount": 123.45
+  }
+}
+```
+
+Events for additional invoices or other types of entities can be stored in the same table.
+
+An initial AWS architecture for event sourcing starts with this.
+
+![Writing events to DynamoDB](./img/event-sourcing-eventlog.png)
+
+<FigureCaption>Fig 3. Writing events to DynamoDB</FigureCaption>
+
+1. Commands such as `Approve Invoice` are sent through the API Gateway to a Lambda function.
+2. The Lambda function containing domain logic queries the DynamoDB table for the entire event
+   stream for the invoice specified. These events are used to rebuild the Invoice object in memory.
+3. The Lambda function processes the Approve Invoice command by validating the state and then
+   applying the Invoice Approved event. When the Invoice object is saved, the new event is added to
+   the DynamoDB table.
+
+### Publishing Events
+
+Publishing domain events is a vital component of event sourcing-based systems. There are two primary
+purposes of those events:
+
+1. Create projections or views of the data as needed by the user interface(s) of the application.
+2. Notifying third parties outside of the system of changes that have occurred within the system.
+
+![Publishing events with DynamoDB streams](./img/event-sourcing-streams.png)
+
+<FigureCaption>Fig 4. Publishing events with DynamoDB streams</FigureCaption>
+
+Event publication can be accomplished using DynamoDB streams which is is an ordered flow of
+information about changes to items in a DynamoDB table.
+
+4. As new events are inserted into the DynamoDB table, those changes are pushed to the DynamoDB
+   stream.
+5. Amazon DynamoDB is integrated with AWS Lambda so that you can create _triggers_—pieces of code
+   that automatically respond to events in DynamoDB Streams.
+6. The Lambda function then formats the event and publishes to EventBridge, which is a serverless
+   event bus that ingests data from your own apps, SaaS apps, and AWS services and routes that data
+   to targets.
+
+### Responding to Events
+
+EventBridge events are only useful if someone or something is listening to them. A _target_ is a
+resource or endpoint that EventBridge sends an
+[event](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-events.html) to when the event
+matches the event pattern defined for a
+[rule](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rules.html). The rule processes
+the [event](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-events.html) data and sends
+the pertinent information to the target.
+
+![Subscribing to events with EventBridge](./img/event-sourcing-eventbridge.png)
+
+<FigureCaption>Fig 5. Subscribing to events with EventBridge</FigureCaption>
+
+7. EventBridge rules match the event to the rule pattern
+8. Matching events are sent to the targets.
+9. The target processes the event and performs necessary actions such as creating a view of the data
+   in a relational database, archiving a copy of the event in a data lake, or sending the event to
+   an external API destination over HTTP.
 
 ## Conclusion
 
 Event sourcing is a good fit for complex business domains that require a historical log of events.
 The benefits of this pattern need to be weighed against the complexity of constructing projections
 or aggregates across many events and synchronization across domains.
-
-## Learn more, take action
-
-If you're ready to put this pattern into action, check out these resources to help you get started:
-
-- [Serverlessland EventBridge patterns](https://serverlessland.com/patterns?services=eventbridge)
-- [AWS Prescriptive Guideance - Event sourcing](https://docs.aws.amazon.com/prescriptive-guidance/latest/modernization-data-persistence/service-per-team.html)

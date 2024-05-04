@@ -96,3 +96,38 @@ export const RodrigoRogelioProfileCard = () => {
   }
   return <ProfileCard authors={[rodcab, rogelio]} />
 }
+
+export const EventSourcingProfileCard = () => {
+  const doug = {
+    name: "Doug Perkes",
+    title: "Sr. Solutions Architect",
+    headshotImage: "/img/dougperkes-badge.jpeg",
+    gitHubUsername: "dougperkes",
+    linkedInUsername: "dougperkes",
+    twitterUsername: "dougperkes",
+  }
+  const rajdeep = {
+    name: "Rajdeep Banerjee",
+    title: "Sr. Solutions Architect",
+    headshotImage: "/img/rajdeep-banerjee-badge.jpeg",
+    linkedInUsername: "rajdeep-banerjee",
+    gitHubUsername: "rajdban",
+  }
+  const kurt = {
+    name: "Kurt Tometich",
+    title: "Sr. Solutions Architect",
+    headshotImage: "/img/tometich-profile.jpg",
+    gitHubUsername: "boomtown15",
+    linkedInUsername: "kurt-tometich",
+    twitterUsername: "boomtown15",
+  }
+  const james = {
+    name: "James Eastham",
+    title: "Sr. Solutions Architect",
+    headshotImage: "/img/james-eastham-profile.png",
+    linkedInUsername: "james-eastham",
+    twitterUsername: "plantpowerjames",
+    gitHubUsername: "jeastham1993"
+  }
+  return <ProfileCard authors={[doug, kurt, rajdeep, james]} />
+}
