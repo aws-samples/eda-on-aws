@@ -131,3 +131,15 @@ export const EventSourcingProfileCard = () => {
   }
   return <ProfileCard authors={[doug, kurt, rajdeep, james]} />
 }
+
+export const CQRSProfileCard = () => {
+  const perillo = {
+    name: "Roberto Perillo",
+    title: "Enterprise Solutions Architect",
+    headshotImage: "/img/perillo.jpeg",
+    gitHubUsername: "robertoperillo",
+    linkedInUsername: "robertoperillo",
+    twitterUsername: "robertoperillo",
+  }
+  return <ProfileCard authors={[perillo]} />
+}
