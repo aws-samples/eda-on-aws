@@ -14,10 +14,10 @@ jobs:
       BASE_URL: /eda-on-aws/
       MEASUREMENT_ID: G-TQYBZDSVJ7
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.2.0
         with:
-          node-version: 18
+          node-version: 22.13.1
           cache: npm
           cache-dependency-path: package-lock.json
       - name: Install dependencies
@@ -30,7 +30,7 @@ jobs:
             echo "::warning title=Invalid file permissions automatically fixed::$line"
           done
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3.0.1
         with:
           path: build
 
@@ -47,4 +47,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4.0.5
