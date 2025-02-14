@@ -256,7 +256,7 @@ In this idea, we could have the command service deal with a transaction coordina
 
 <FigureCaption>Fig 11. CQRS with two-phase commit.</FigureCaption>
 
-This is definitely a possibility. The only observations here are that we'll have a transaction coordinator, which is going to be a single point of failure, and this is something we want to avoid. The other one is, to be part of a two-phase commit transaction, databases have to implement the XA protocol, so we'll be limited to databases that implement it. As an example, MongoDB does not implement this protocol, so it could not be used neither in the command service nor the command service.
+This is definitely a possibility. The only observations here are that we'll have a transaction coordinator, which is going to be a single point of failure, and this is something we want to avoid. The other one is, to be part of a two-phase commit transaction, databases have to implement the XA protocol, so we'll be limited to databases that implement it. As an example, MongoDB does not implement this protocol, so it could not be used neither in the command service nor in the query service.
 
 One advantage of this idea is that, even though not all databases implement the XA protocol, not only databases implement it. For example, with the idea of the Transactional Outbox pattern, we want to guarantee that what is being published has already been persisted. We could involve, in the same transaction, the committing of data in the database and the publishing of messages in a message broker such as ActiveMQ, which implements the XA protocol. We would again be limited by the databases and components that implement it, and we would also have a single point of failure, which is the transaction coordinator.
 
